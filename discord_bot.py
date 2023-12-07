@@ -1,14 +1,19 @@
 import os
+from copy import deepcopy
 import discord
 from discord.ext import commands
 from discord.ext.commands.context import Context
 from dotenv import load_dotenv
-from gpt import get_context, write_to_json, get_response
+from gpt import get_response
+from utils import get_context, write_to_json, is_valid_content_length
 
 # initializing
 load_dotenv()
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='$', intents=intents, help_command=None)
+RAW_INSTRUCTIONS = os.getenv('INSTRUCTIONS')
+INSTRUCTIONS= eval(RAW_INSTRUCTIONS)
+
 
 #commands
 @bot.command() 
@@ -51,9 +56,10 @@ async def chat(ctx, *, msg=None):
             context = get_context('context.json')
             context['messages'].append({'role': 'user', 'content': msg})
 
-            instructions_context = context.copy()
-            instructions_context['messages'].insert(0, INSTRUCTIONS['messages'])
-
+            instructions_context = deepcopy(context)
+            instructions_context['messages'].insert(0, INSTRUCTIONS['messages'][1])
+            instructions_context['messages'].insert(0, INSTRUCTIONS['messages'][0])
+            print(instructions_context)
             response = await get_response(instructions_context['messages'])
             await ctx.reply(response)
             context['messages'].append({'role': 'assistant', 'content': response})
@@ -66,32 +72,6 @@ async def chat(ctx, *, msg=None):
             await ctx.reply('слишком многа букаф, мой пердел - 100 символов')
     else:
         await ctx.reply('Хули тут пусто')
-
-# async def chat(ctx, *, msg:str=None):
-#     if msg is not None:
-#         if len(msg) < 100:
-#             context = get_context('context.json')
-#             context['messages'].append({'role': 'user', 'content': msg})
-#             instructions_context = context.copy()
-#             instructions_context['messages'].insert(0, INSTRUCTIONS['messages'])
-#             print(type(instructions_context['messages']))
-#             response = get_response(messages=instructions_context['messages'])
-#             # response = get_response(context['messages'])
-#             await ctx.reply(response)
-#             context['messages'].append({'role': 'assistant', 'content': response})
-#             if not is_valid_content_length(context):
-#                 del context['messages'][:2]
-#             write_to_json(context, 'context.json')
-#         elif len(msg) >= 100:
-#             await ctx.reply('слишком многа букаф, мой пердел - 100 символов')
-#     else:
-#         await ctx.reply('Хули тут пусто')
-
-
-# events
-# @bot.event
-# async def on_command_error(ctx, error):
-#     await ctx.send(f'Error {error}. Type $help')
 
 # run
 if __name__ == '__main__':
