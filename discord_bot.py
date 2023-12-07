@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands.context import Context
 from dotenv import load_dotenv
-from gpt import get_context, get_response, write_to_json
+from gpt import get_context, write_to_json, get_response
 
 # initializing
 load_dotenv()
@@ -49,16 +49,18 @@ async def chat(ctx, *, msg=None):
     if msg is not None:
         context = get_context('context.json')
         context['messages'].append({'role': 'user', 'content': msg})
-        response = get_response(context['messages'])
+        response = await get_response(context['messages'])
         await ctx.reply(response)
         context['messages'].append({'role': 'assistant', 'content': response})
         write_to_json(context, 'context.json')
     else:
         await ctx.reply('Хули тут пусто')
+
+        
 # events
-@bot.event
-async def on_command_error(ctx, error):
-    await ctx.send(f'Error {error}. Type $help')
+# @bot.event
+# async def on_command_error(ctx, error):
+#     await ctx.send(f'Error {error}. Type $help')
 
 # run
 if __name__ == '__main__':

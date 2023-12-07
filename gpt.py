@@ -1,14 +1,15 @@
 import json
 from json import JSONDecodeError
 import g4f
+import asyncio
 
-def get_response(messages):
-    response = g4f.ChatCompletion.create(
-        model=g4f.models.gpt_4,
-        messages=messages,
-)
+def create_chat_completion(model, messages):
+    return g4f.ChatCompletion.create(model=model, messages=messages)
+
+async def get_response(messages):
+    loop = asyncio.get_event_loop()
+    response = await loop.run_in_executor(None, create_chat_completion, g4f.models.gpt_4, messages)
     return response
-
 
 
 def get_context(file_name: str):
@@ -39,3 +40,12 @@ def write_to_json(content: dict, filename: str):
 
 # if __name__ == '__main__':
 #     chat()
+
+
+# def chat():
+#     msg = input()
+#     response = get_response([{'role': 'user', 'content': msg}])
+#     print(type(response))
+
+# chat()
+    
