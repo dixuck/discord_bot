@@ -1,4 +1,5 @@
 import os
+import logging
 from copy import deepcopy
 import discord
 from discord.ext import commands
@@ -6,6 +7,33 @@ from discord.ext.commands.context import Context
 from dotenv import load_dotenv
 from gpt import get_response
 from utils import get_context, write_to_json, is_valid_content_length
+import logging
+
+# Настройка уровня логирования
+logging.basicConfig(level=logging.ERROR)  # Выберите уровень в зависимости от необходимости
+
+# Создание логгера для бота
+logger = logging.getLogger('discord')
+logger.setLevel(logging.ERROR)  # Установите уровень для логгера бота
+
+# Обработчик для вывода сообщений об ошибках в консоль
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.ERROR)  # Выберите уровень в зависимости от необходимости
+
+# Обработчик для записи сообщений об ошибках в файл
+file_handler = logging.FileHandler('logs.txt')
+file_handler.setLevel(logging.ERROR)  # Выберите уровень в зависимости от необходимости
+
+# Форматтер для сообщений об ошибках
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# Настройка форматтера для обработчиков
+console_handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+
+# Добавление обработчиков к логгеру
+logger.addHandler(console_handler)
+logger.addHandler(file_handler)
 
 # initializing
 load_dotenv()
@@ -72,6 +100,13 @@ async def chat(ctx, *, msg=None):
             await ctx.reply('слишком многа букаф, мой пердел - 100 символов')
     else:
         await ctx.reply('Хули тут пусто')
+
+# event
+bot.event
+async def on_command_error(ctx, error):
+    logger.error(f"Error: {error}")
+    await ctx.send(f'Error: {error}. Type $help')
+
 
 # run
 if __name__ == '__main__':
