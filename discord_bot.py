@@ -47,16 +47,47 @@ async def ping(ctx):
 @bot.command()
 async def chat(ctx, *, msg=None):
     if msg is not None:
-        context = get_context('context.json')
-        context['messages'].append({'role': 'user', 'content': msg})
-        response = await get_response(context['messages'])
-        await ctx.reply(response)
-        context['messages'].append({'role': 'assistant', 'content': response})
-        write_to_json(context, 'context.json')
+        if len(msg) <= 100:
+            context = get_context('context.json')
+            context['messages'].append({'role': 'user', 'content': msg})
+
+            instructions_context = context.copy()
+            instructions_context['messages'].insert(0, INSTRUCTIONS['messages'])
+
+            response = await get_response(instructions_context['messages'])
+            await ctx.reply(response)
+            context['messages'].append({'role': 'assistant', 'content': response})
+
+            if not is_valid_content_length(context):
+                del context['messages'][:2]
+
+            write_to_json(context, 'context.json')
+        elif len(msg) > 100:
+            await ctx.reply('слишком многа букаф, мой пердел - 100 символов')
     else:
         await ctx.reply('Хули тут пусто')
 
-        
+# async def chat(ctx, *, msg:str=None):
+#     if msg is not None:
+#         if len(msg) < 100:
+#             context = get_context('context.json')
+#             context['messages'].append({'role': 'user', 'content': msg})
+#             instructions_context = context.copy()
+#             instructions_context['messages'].insert(0, INSTRUCTIONS['messages'])
+#             print(type(instructions_context['messages']))
+#             response = get_response(messages=instructions_context['messages'])
+#             # response = get_response(context['messages'])
+#             await ctx.reply(response)
+#             context['messages'].append({'role': 'assistant', 'content': response})
+#             if not is_valid_content_length(context):
+#                 del context['messages'][:2]
+#             write_to_json(context, 'context.json')
+#         elif len(msg) >= 100:
+#             await ctx.reply('слишком многа букаф, мой пердел - 100 символов')
+#     else:
+#         await ctx.reply('Хули тут пусто')
+
+
 # events
 # @bot.event
 # async def on_command_error(ctx, error):
